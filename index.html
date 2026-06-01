@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>菜單上架管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F6F2;--card:#fff;--border:#E4E2DC;--border2:#D0CEC6;
+  --text:#1A1917;--text2:#6B6860;--text3:#9B9A96;
+  --accent:#2A6041;--accent-light:#E8F3EC;
+  --warn:#C45C1A;--warn-light:#FDF0E8;
+  --danger:#B33030;--danger-light:#FCEAEA;
+  --info:#1A5FA8;--info-light:#EAF1FB;
+  --purple:#5B3FBB;--purple-light:#F0ECFC;
+  --tag-bg:#EEF0F5;--radius:10px;--radius-sm:6px;
+}
+body{font-family:'DM Sans','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+nav{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;height:56px;position:sticky;top:0;z-index:100;gap:12px}
+.nav-brand{font-weight:600;font-size:15px;color:var(--accent);display:flex;align-items:center;gap:8px;white-space:nowrap;margin-right:8px}
+.sync-dot{font-size:12px;color:var(--text3);white-space:nowrap}
+.sync-dot.ok{color:var(--accent)}
+.nav-tabs{display:flex;gap:2px;flex:1}
+.nav-tab{padding:6px 14px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--text2);background:none;border:none;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.nav-tab:hover{background:var(--bg);color:var(--text)}
+.nav-tab.active{background:var(--accent-light);color:var(--accent)}
+.nav-tab .badge{background:var(--warn);color:#fff;font-size:11px;padding:1px 6px;border-radius:10px;font-weight:600}
+.btn-add{background:var(--accent);color:#fff;border:none;padding:7px 16px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap;margin-left:auto}
+.btn-add:hover{background:#1d4d30}
+main{max-width:1240px;margin:0 auto;padding:24px 20px}
+.page{display:none}.page.active{display:block}
+.toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap input{width:100%;padding:8px 12px 8px 36px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text)}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);width:16px;height:16px;pointer-events:none}
+.filter-select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text);cursor:pointer}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-card .num{font-size:24px;font-weight:600;line-height:1}
+.stat-card .lbl{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card.warn .num{color:var(--warn)}.stat-card.ok .num{color:var(--accent)}.stat-card.info .num{color:var(--info)}
+.cat-tags-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.cat-tag{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px}
+.cat-tag:hover{border-color:var(--accent);color:var(--accent)}
+.cat-tag.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cat-tag .x{opacity:.5;font-size:15px;line-height:1;cursor:pointer;margin-left:2px}
+.cat-tag .x:hover{opacity:1}
+.cat-add-wrap{display:inline-flex;align-items:center;gap:6px}
+.cat-add-input{padding:5px 10px;border-radius:20px;font-size:13px;border:1px dashed var(--border2);background:var(--card);color:var(--text);width:100px;font-family:inherit;transition:all .15s}
+.cat-add-input:focus{outline:none;border-color:var(--accent);width:130px}
+.cat-add-btn{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent);cursor:pointer}
+.cat-add-btn:hover{background:var(--accent);color:#fff}
+.item-cat-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;background:var(--tag-bg);color:var(--text2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.item-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s}
+.item-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.item-card.urgent{border-color:#F5A67C}
+.item-card.published{border-color:#a3d4b6}
+.card-img{width:100%;height:160px;background:#F0EDE8;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-img .no-img{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text3);font-size:13px}
+.status-badge{position:absolute;top:8px;right:8px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600}
+.s-draft{background:#EEECEA;color:#6B6860}
+.s-pending{background:var(--warn-light);color:var(--warn)}
+.s-published{background:var(--accent-light);color:var(--accent)}
+.card-body{padding:14px 16px}
+.card-name{font-size:15px;font-weight:600}
+.card-price{font-size:15px;font-weight:600;color:var(--accent);flex-shrink:0}
+.card-trans{font-size:12px;color:var(--text2);margin:5px 0 6px;line-height:1.6}
+.card-note{font-size:12px;color:var(--purple);background:var(--purple-light);border-radius:4px;padding:4px 8px;margin-bottom:6px}
+.card-date{font-size:12px;color:var(--text3)}
+.card-date.urgent-date{color:var(--warn);font-weight:500}
+.card-actions{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--border);background:#FAFAF8}
+.btn-sm{padding:5px 12px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--card);color:var(--text);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.btn-sm:hover{background:var(--bg)}
+.btn-sm.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-sm.primary:hover{background:#1d4d30}
+.btn-sm.danger{background:var(--danger-light);color:var(--danger);border-color:#f5b3b3}
+.btn-sm.info-btn{background:var(--info-light);color:var(--info);border-color:#c0d9f5}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:200;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.overlay.open{display:flex}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:640px;box-shadow:0 8px 40px rgba(0,0,0,0.18);margin:auto}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h2{font-size:17px;font-weight:600}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;border-radius:4px;display:flex}
+.modal-close:hover{color:var(--text);background:var(--bg)}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:500;color:var(--text2)}
+.field input,.field textarea,.field select{padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;color:var(--text);background:var(--card);transition:border-color .15s;width:100%}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--accent)}
+.field textarea{resize:vertical;min-height:70px}
+.field .hint{font-size:12px;color:var(--text3)}
+.section-title{font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.05em;text-transform:uppercase;margin:18px 0 10px;padding-top:18px;border-top:1px solid var(--border)}
+.section-title:first-child{margin-top:0;padding-top:0;border-top:none}
+.trans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.img-upload-area{border:2px dashed var(--border2);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.img-upload-area:hover{border-color:var(--accent);background:var(--accent-light)}
+.img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-preview-modal{width:100%;max-height:160px;object-fit:cover;border-radius:var(--radius-sm);margin-top:10px;display:none}
+.note-field textarea{border-color:#C9BDEE;background:var(--purple-light)}
+.note-field textarea:focus{border-color:var(--purple)}
+.translate-btn{background:var(--info-light);color:var(--info);border:1px solid #c0d9f5;padding:5px 10px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s}
+.translate-btn:hover{background:#d8ebfa}
+.translate-btn.loading{opacity:.6;pointer-events:none}
+.spinning{animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.it-table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto}
+.it-table{width:100%;border-collapse:collapse;min-width:720px}
+.it-table th{text-align:left;font-size:12px;font-weight:600;color:var(--text2);padding:9px 14px;border-bottom:2px solid var(--border);background:var(--bg);white-space:nowrap}
+.it-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle}
+.it-table tr:last-child td{border-bottom:none}
+.it-table tr:hover td{background:#FAFAF8}
+.img-cell{display:flex;flex-direction:column;align-items:center;gap:6px;width:68px}
+.it-thumb{width:64px;height:52px;object-fit:cover;border-radius:6px;border:1px solid var(--border);display:block}
+.it-thumb-empty{width:64px;height:52px;border-radius:6px;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text3);background:#fafaf8}
+.dl-btn{display:flex;align-items:center;justify-content:center;gap:3px;padding:4px 8px;background:var(--info);color:#fff;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;width:64px;transition:background .15s}
+.dl-btn:hover{background:#1349a0}
+.it-trans{font-size:12px;color:var(--text2);line-height:1.8}
+.copy-btn{display:inline-flex;align-items:center;gap:3px;background:none;border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:11px;color:var(--text2);cursor:pointer;margin-top:2px;transition:all .15s}
+.copy-btn:hover{background:var(--info-light);color:var(--info);border-color:#c0d9f5}
+.it-note-chip{display:inline-block;font-size:11px;color:var(--purple);background:var(--purple-light);border-radius:4px;padding:2px 7px;margin-top:3px;word-break:break-all}
+.check-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;border:1px solid;cursor:pointer;transition:all .15s;white-space:nowrap}
+.check-btn.unchecked{background:#fff;color:var(--text2);border-color:var(--border2)}
+.check-btn.unchecked:hover{background:var(--accent-light);color:var(--accent);border-color:#b3d9c1}
+.check-btn.checked{background:var(--accent-light);color:var(--accent);border-color:#b3d9c1}
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600}
+.tag-pending{background:var(--warn-light);color:var(--warn)}
+.tag-done{background:var(--accent-light);color:var(--accent)}
+.alert-banner{background:var(--warn-light);border:1px solid #F9C99B;border-radius:var(--radius-sm);padding:10px 14px;font-size:13px;color:var(--warn);display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;margin:0 auto 12px;display:block;color:var(--border2)}
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{color:#fff;padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;pointer-events:auto;opacity:0;transform:translateY(8px);transition:all .25s;max-width:300px}
+.toast.show{opacity:1;transform:translateY(0)}
+@media(max-width:640px){.form-grid,.trans-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}nav{padding:0 12px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    菜單上架系統
+  </div>
+  <span class="sync-dot" id="sync-dot">⏳ 連線中…</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-mkt" onclick="switchPage('marketing',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>行銷管理
+    </button>
+    <button class="nav-tab" id="tab-it" onclick="switchPage('it',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>IT 上架清單
+      <span class="badge" id="it-badge" style="display:none">0</span>
+    </button>
+  </div>
+  <button class="btn-add" onclick="openModal()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增餐點
+  </button>
+</nav>
+
+<main>
+  <div class="page active" id="page-marketing">
+    <div class="alert-banner" id="urgent-alert" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="urgent-text"></span>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="cat-tags-row" id="cat-tags-row"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="mkt-search" placeholder="搜尋餐點名稱…" oninput="renderCards()">
+      </div>
+      <select class="filter-select" id="mkt-status" onchange="renderCards()">
+        <option value="">所有狀態</option>
+        <option value="draft">草稿</option>
+        <option value="pending">待上架</option>
+        <option value="published">已上架</option>
+      </select>
+      <select class="filter-select" id="mkt-sort" onchange="renderCards()">
+        <option value="newest">最新建立</option>
+        <option value="date">上架時間</option>
+        <option value="name">名稱排序</option>
+      </select>
+    </div>
+    <div class="grid" id="card-grid"></div>
+    <div class="empty-state" id="empty-state" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <p>尚無餐點，點右上角新增</p>
+    </div>
+  </div>
+
+  <div class="page" id="page-it">
+    <div class="stats-row" id="it-stats-row"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="it-search" placeholder="搜尋餐點…" oninput="renderIT()">
+      </div>
+      <select class="filter-select" id="it-filter" onchange="renderIT()">
+        <option value="">所有項目</option>
+        <option value="unchecked">待上架</option>
+        <option value="checked">已上架</option>
+      </select>
+      <button class="btn-sm info-btn" onclick="exportCSV()" style="margin-left:auto">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>匯出 CSV
+      </button>
+    </div>
+    <div class="it-table-wrap">
+      <table class="it-table">
+        <thead>
+          <tr>
+            <th style="width:92px">圖片</th>
+            <th style="width:170px">餐點名稱</th>
+            <th style="width:190px">多語言名稱</th>
+            <th style="width:110px">價格</th>
+            <th style="width:130px">上架時間</th>
+            <th style="width:72px">狀態</th>
+            <th style="width:110px">IT 確認</th>
+          </tr>
+        </thead>
+        <tbody id="it-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- 新增/編輯 MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">新增餐點</h2>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">基本資訊</div>
+      <div class="form-grid">
+        <div class="field"><label>餐點名稱（中文）*</label><input type="text" id="f-name" placeholder="例：招牌牛肉麵" oninput="onNameChange()"></div>
+        <div class="field"><label>內用價格</label><input type="number" id="f-price" placeholder="例：280"></div>
+        <div class="field"><label>Uber 外送價格</label><input type="number" id="f-price-uber" placeholder="例：320"></div>
+      </div>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="field">
+          <label>分類</label>
+          <select id="f-cat"><option value="">選擇分類</option></select>
+        </div>
+        <div class="field"><label>需上架時間</label><input type="datetime-local" id="f-date"><span class="hint">7 天內自動提醒</span></div>
+      </div>
+      <div class="field" style="margin-top:12px"><label>餐點介紹</label><textarea id="f-desc" placeholder="食材、特色…"></textarea></div>
+      <div class="field note-field" style="margin-top:12px">
+        <label style="color:var(--purple)">📝 給 IT 的備註</label>
+        <textarea id="f-note" placeholder="例：先不要放首頁、需替換舊版同名餐點…" style="min-height:54px"></textarea>
+      </div>
+      <div class="section-title">多語言翻譯</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <button class="translate-btn" id="trans-btn" onclick="autoTranslate()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-4"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>自動翻譯
+        </button>
+        <span class="hint" id="trans-hint">請先輸入中文名稱</span>
+      </div>
+      <div class="trans-grid">
+        <div class="field"><label>英文 EN</label><input type="text" id="f-en" placeholder="English"></div>
+        <div class="field"><label>日文 JP</label><input type="text" id="f-jp" placeholder="日本語"></div>
+        <div class="field"><label>韓文 KR</label><input type="text" id="f-kr" placeholder="한국어"></div>
+        <div class="field"><label>法文 FR</label><input type="text" id="f-fr" placeholder="Français"></div>
+      </div>
+      <div class="section-title">餐點圖片</div>
+      <div class="img-upload-area">
+        <input type="file" accept="image/*" id="f-img" onchange="handleImg(event)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text3);margin-bottom:6px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p style="font-size:13px;color:var(--text2)">點擊或拖曳上傳圖片</p>
+        <p style="font-size:12px;color:var(--text3)">JPG · PNG · WEBP，建議 800×600px</p>
+      </div>
+      <img id="img-preview" class="img-preview-modal">
+      <div id="img-remove" style="display:none;margin-top:8px">
+        <button class="btn-sm danger" onclick="removeImg()" style="font-size:12px;padding:4px 10px">移除圖片</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal()">取消</button>
+      <button class="btn-sm" style="background:var(--bg)" onclick="saveItem('draft')">存為草稿</button>
+      <button class="btn-sm primary" onclick="saveItem('pending')">送出待上架</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const cfg = {
+  apiKey: "AIzaSyAb2ws_yX9EvLUhHLloq4tZixMIprY44Y4",
+  authDomain: "menu-2f94c.firebaseapp.com",
+  projectId: "menu-2f94c",
+  storageBucket: "menu-2f94c.firebasestorage.app",
+  messagingSenderId: "586933973033",
+  appId: "1:586933973033:web:4822dcb507cd573a8bac38"
+};
+
+const app = initializeApp(cfg);
+const db  = getFirestore(app);
+
+// ── 即時同步：餐點 ──
+onSnapshot(collection(db,'menu_items'), snap => {
+  window._items = [];
+  snap.forEach(d => window._items.push({id: d.id, ...d.data()}));
+  window.renderCards();
+  window.renderStats();
+  if(document.getElementById('page-it').classList.contains('active')) window.renderIT();
+}, err => {
+  console.error('items listener error:', err);
+  window.toast('Firebase 連線失敗，請確認 Firestore 規則已設為公開', 'warn');
+});
+
+// ── 即時同步：分類 ──
+onSnapshot(collection(db,'menu_cats'), snap => {
+  if(snap.empty){
+    // 第一次：寫入預設分類
+    const defaults = ['主食','湯品','飲料','甜點','小食','套餐','季節限定','素食'];
+    defaults.forEach((name,i) => setDoc(doc(db,'menu_cats',`cat_${String(i).padStart(3,'0')}`),{name,order:i}));
+    return;
+  }
+  const sorted = snap.docs.sort((a,b)=>(a.data().order||0)-(b.data().order||0));
+  window._cats = sorted.map(d=>d.data().name);
+  window.renderCatTags();
+  // sync modal select
+  const sel = document.getElementById('f-cat');
+  if(sel){
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">選擇分類</option>' + window._cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    if(window._cats.includes(cur)) sel.value = cur;
+  }
+  // mark connected
+  const dot = document.getElementById('sync-dot');
+  if(dot){ dot.textContent='● 已連線'; dot.className='sync-dot ok'; }
+}, err => {
+  console.error('cats listener error:', err);
+});
+
+// ── Firebase 操作：暴露給全域 ──
+window.fbSaveItem = (item) => {
+  const {id,...data} = item;
+  return setDoc(doc(db,'menu_items',id), data);
+};
+window.fbDeleteItem = (id) => deleteDoc(doc(db,'menu_items',id));
+window.fbSaveCats = async (arr) => {
+  const snap = await getDocs(collection(db,'menu_cats'));
+  await Promise.all(snap.docs.map(d=>deleteDoc(d.ref)));
+  await Promise.all(arr.map((name,i)=>setDoc(doc(db,'menu_cats',`cat_${String(i).padStart(3,'0')}`),{name,order:i})));
+};
+</script>
+
+<script>
+// ── STATE ──
+window._items = window._items || [];
+window._cats  = window._cats  || [];
+let activeCat='', editId=null, editImg=null;
+
+// getter shortcuts
+function getItems(){ return window._items||[]; }
+function getCats(){  return window._cats||[];  }
+
+// ── UTILS ──
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function toast(msg,type='ok'){
+  const w=document.getElementById('toasts');
+  const t=document.createElement('div'); t.className='toast';
+  t.style.background=type==='ok'?'var(--accent)':type==='warn'?'var(--warn)':'#333';
+  t.textContent=msg; w.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); },2800);
+}
+window.toast = toast;
+function daysUntil(s){ if(!s)return null; return Math.ceil((new Date(s)-new Date())/864e5); }
+function fmtDate(s){
+  if(!s)return'—'; const d=new Date(s);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ── PAGE ──
+function switchPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  el.classList.add('active');
+  if(p==='it') renderIT();
+}
+
+// ── CATEGORY TAGS ──
+function renderCatTags(){
+  const row=document.getElementById('cat-tags-row');
+  if(!row)return;
+  const cats=getCats();
+  const allBtn=`<button class="cat-tag ${activeCat===''?'active':''}" onclick="setCat('')">全部</button>`;
+  const catBtns=cats.map(c=>`<span class="cat-tag ${activeCat===c?'active':''}" onclick="setCat('${c}')">
+    ${c}<span class="x" onclick="event.stopPropagation();deleteCat('${c}')">×</span>
+  </span>`).join('');
+  const addWrap=`<span class="cat-add-wrap">
+    <input class="cat-add-input" id="cat-input" placeholder="新增分類…" maxlength="12"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();addCat()}" onclick="event.stopPropagation()">
+    <button class="cat-add-btn" onclick="addCat()">+ 新增</button>
+  </span>`;
+  row.innerHTML=allBtn+catBtns+addWrap;
+}
+window.renderCatTags = renderCatTags;
+
+function setCat(c){ activeCat=c; renderCatTags(); renderCards(); }
+
+function addCat(){
+  const inp=document.getElementById('cat-input');
+  const v=(inp?.value||'').trim();
+  if(!v){ toast('請輸入分類名稱','warn'); return; }
+  if(getCats().includes(v)){ toast('此分類已存在','warn'); return; }
+  const newCats=[...getCats(), v];
+  window._cats=newCats;
+  renderCatTags();
+  syncModalCats();
+  if(inp) inp.value='';
+  window.fbSaveCats && window.fbSaveCats(newCats).then(()=>toast(`✅ 已新增分類「${v}」`)).catch(()=>toast('儲存失敗','warn'));
+}
+
+function deleteCat(c){
+  if(!confirm(`確定刪除分類「${c}」？`))return;
+  const newCats=getCats().filter(x=>x!==c);
+  if(activeCat===c) activeCat='';
+  window._cats=newCats;
+  renderCatTags(); renderCards(); syncModalCats();
+  window.fbSaveCats && window.fbSaveCats(newCats).then(()=>toast(`已刪除「${c}」`,'warn')).catch(()=>toast('刪除失敗','warn'));
+}
+
+function syncModalCats(){
+  const sel=document.getElementById('f-cat'); if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">選擇分類</option>'+getCats().map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(getCats().includes(cur)) sel.value=cur;
+}
+
+// ── STATS ──
+function renderStats(){
+  const items=getItems();
+  const total=items.length;
+  const pending=items.filter(x=>x.status==='pending'&&!x.itChecked).length;
+  const pub=items.filter(x=>x.itChecked).length;
+  const urg=items.filter(x=>{ const d=daysUntil(x.date); return d!==null&&d<=3&&d>=0&&!x.itChecked; }).length;
+  const sr=document.getElementById('stats-row');
+  if(sr) sr.innerHTML=`
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">全部餐點</div></div>
+    <div class="stat-card info"><div class="num">${pending}</div><div class="lbl">待上架</div></div>
+    <div class="stat-card ok"><div class="num">${pub}</div><div class="lbl">已上架</div></div>
+    <div class="stat-card warn"><div class="num">${urg}</div><div class="lbl">即將到期</div></div>`;
+  const b=document.getElementById('it-badge');
+  if(b){ b.style.display=pending?'':'none'; b.textContent=pending; }
+  const urgItems=items.filter(x=>{ const d=daysUntil(x.date); return d!==null&&d<=3&&d>=0&&!x.itChecked; });
+  const al=document.getElementById('urgent-alert');
+  if(al){
+    if(urgItems.length){ al.style.display='flex'; document.getElementById('urgent-text').textContent=`⚠️ 有 ${urgItems.length} 個餐點即將到期：${urgItems.map(x=>x.name).join('、')}`; }
+    else al.style.display='none';
+  }
+}
+window.renderStats = renderStats;
+
+// ── CARDS ──
+function renderCards(){
+  const items=getItems();
+  const q=(document.getElementById('mkt-search')?.value||'').toLowerCase();
+  const sf=document.getElementById('mkt-status')?.value||'';
+  const srt=document.getElementById('mkt-sort')?.value||'newest';
+  let list=[...items];
+  if(activeCat) list=list.filter(x=>x.cat===activeCat);
+  if(q) list=list.filter(x=>x.name.toLowerCase().includes(q)||(x.en||'').toLowerCase().includes(q));
+  if(sf==='published') list=list.filter(x=>x.itChecked);
+  else if(sf==='pending') list=list.filter(x=>x.status==='pending'&&!x.itChecked);
+  else if(sf==='draft') list=list.filter(x=>x.status==='draft');
+  if(srt==='date') list.sort((a,b)=>(a.date||'zzz').localeCompare(b.date||'zzz'));
+  else if(srt==='name') list.sort((a,b)=>a.name.localeCompare(b.name));
+  else list.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const grid=document.getElementById('card-grid');
+  const empty=document.getElementById('empty-state');
+  renderStats();
+  if(!list.length){ if(grid)grid.innerHTML=''; if(empty)empty.style.display='block'; return; }
+  if(empty) empty.style.display='none';
+  const slbl=item=>item.itChecked?{cls:'s-published',lbl:'已上架'}:item.status==='pending'?{cls:'s-pending',lbl:'待上架'}:{cls:'s-draft',lbl:'草稿'};
+  if(grid) grid.innerHTML=list.map(item=>{
+    const d=daysUntil(item.date);
+    const urgent=d!==null&&d<=3&&d>=0&&!item.itChecked;
+    const s=slbl(item);
+    const img=item.imgData?`<img src="${item.imgData}" alt="">`:`<div class="no-img"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>尚無圖片</span></div>`;
+    const dateHtml=item.date?(urgent?`<div class="card-date urgent-date">⚠️ ${d}天後到期</div>`:`<div class="card-date">📅 ${fmtDate(item.date)}</div>`):'';
+    return `<div class="item-card${urgent?' urgent':''}${item.itChecked?' published':''}">
+      <div class="card-img">${img}<span class="status-badge ${s.cls}">${s.lbl}</span></div>
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px">
+          <div><div class="card-name">${item.name}</div>${item.cat?`<div style="margin-top:4px"><span class="item-cat-badge">${item.cat}</span></div>`:''}</div>
+          <div style="text-align:right"><div class="card-price">內用 NT$${item.price||'—'}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Uber NT$${item.priceUber||'—'}</div></div>
+        </div>
+        <div class="card-trans">${[item.en,item.jp,item.kr,item.fr].filter(Boolean).join(' · ')||'<span style="color:var(--text3)">尚未翻譯</span>'}</div>
+        ${item.note?`<div class="card-note">📝 ${item.note.slice(0,60)}${item.note.length>60?'…':''}</div>`:''}
+        ${dateHtml}
+      </div>
+      <div class="card-actions">
+        <button class="btn-sm" onclick="openModal('${item.id}')">✏️ 編輯</button>
+        ${!item.itChecked&&item.status==='draft'?`<button class="btn-sm primary" onclick="sendPending('${item.id}')">送出</button>`:''}
+        <button class="btn-sm danger" style="margin-left:auto" onclick="delItem('${item.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderCards = renderCards;
+
+// ── IT TABLE ──
+function renderIT(){
+  const items=getItems();
+  const q=(document.getElementById('it-search')?.value||'').toLowerCase();
+  const f=document.getElementById('it-filter')?.value||'';
+  let list=items.filter(x=>x.status==='pending'||x.itChecked);
+  if(q) list=list.filter(x=>x.name.toLowerCase().includes(q));
+  if(f==='unchecked') list=list.filter(x=>!x.itChecked);
+  else if(f==='checked') list=list.filter(x=>x.itChecked);
+  list.sort((a,b)=>(a.date||'zzz').localeCompare(b.date||'zzz'));
+  const unc=items.filter(x=>x.status==='pending'&&!x.itChecked).length;
+  const chk=items.filter(x=>x.itChecked).length;
+  const isr=document.getElementById('it-stats-row');
+  if(isr) isr.innerHTML=`
+    <div class="stat-card info"><div class="num">${unc}</div><div class="lbl">待上架</div></div>
+    <div class="stat-card ok"><div class="num">${chk}</div><div class="lbl">已上架</div></div>`;
+  const tbody=document.getElementById('it-tbody');
+  if(!tbody)return;
+  if(!list.length){ tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">目前沒有待上架的餐點</td></tr>`; return; }
+  tbody.innerHTML=list.map(item=>{
+    const d=daysUntil(item.date); const urg=d!==null&&d<=3&&d>=0;
+    const dateCell=item.date?`<span ${urg?'style="color:var(--warn);font-weight:500"':''}>${fmtDate(item.date)}${urg?' ⚠️':''}</span>`:'—';
+    const imgCell=item.imgData
+      ?`<div class="img-cell"><img class="it-thumb" src="${item.imgData}" alt=""><button class="dl-btn" onclick="dlImg('${item.id}')"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>下載</button></div>`
+      :`<div class="img-cell"><div class="it-thumb-empty"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div></div>`;
+    const transLines=[item.en&&`🇬🇧 ${item.en}`,item.jp&&`🇯🇵 ${item.jp}`,item.kr&&`🇰🇷 ${item.kr}`,item.fr&&`🇫🇷 ${item.fr}`].filter(Boolean);
+    const transCell=transLines.length?`<div class="it-trans">${transLines.join('<br>')}</div><button class="copy-btn" onclick="copyTrans('${item.id}')">複製</button>`:'—';
+    return `<tr>
+      <td>${imgCell}</td>
+      <td><strong>${item.name}</strong>${item.cat?`<div style="margin-top:4px"><span class="item-cat-badge">${item.cat}</span></div>`:''}${item.note?`<div class="it-note-chip">📝 ${item.note}</div>`:''}</td>
+      <td>${transCell}</td>
+      <td><div style="font-size:13px">內用 <strong>NT$${item.price||'—'}</strong></div><div style="font-size:12px;color:var(--text2)">Uber NT$${item.priceUber||'—'}</div></td>
+      <td style="font-size:13px">${dateCell}</td>
+      <td><span class="tag ${item.itChecked?'tag-done':'tag-pending'}">${item.itChecked?'已上架':'待上架'}</span></td>
+      <td><button class="check-btn ${item.itChecked?'checked':'unchecked'}" onclick="toggleIT('${item.id}')">
+        ${item.itChecked?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>已上架`:`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>標記上架`}
+      </button></td>
+    </tr>`;
+  }).join('');
+}
+window.renderIT = renderIT;
+
+function toggleIT(id){
+  const item=getItems().find(x=>x.id===id); if(!item)return;
+  item.itChecked=!item.itChecked;
+  if(item.itChecked) item.publishedAt=Date.now();
+  window.fbSaveItem&&window.fbSaveItem(item);
+  renderIT(); renderStats();
+  toast(item.itChecked?`✅ 已標記「${item.name}」為上架`:`↩️ 已取消上架標記`);
+}
+
+// ── ACTIONS ──
+function sendPending(id){
+  const item=getItems().find(x=>x.id===id); if(!item)return;
+  item.status='pending';
+  window.fbSaveItem&&window.fbSaveItem(item);
+  renderCards();
+  toast(`📤 已送出「${item.name}」`);
+}
+
+function delItem(id){
+  if(!confirm('確定刪除此餐點？'))return;
+  window.fbDeleteItem&&window.fbDeleteItem(id);
+  toast('已刪除','warn');
+}
+
+function dlImg(id){
+  const item=getItems().find(x=>x.id===id);
+  if(!item?.imgData){ toast('此餐點沒有圖片','warn'); return; }
+  const a=document.createElement('a'); a.href=item.imgData;
+  a.download=`${item.name.replace(/\s+/g,'_')}.jpg`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast(`📥 已下載「${item.name}」圖片`);
+}
+
+function copyTrans(id){
+  const item=getItems().find(x=>x.id===id); if(!item)return;
+  const t=[item.en&&`EN: ${item.en}`,item.jp&&`JP: ${item.jp}`,item.kr&&`KR: ${item.kr}`,item.fr&&`FR: ${item.fr}`].filter(Boolean).join('\n');
+  navigator.clipboard.writeText(t).then(()=>toast('✅ 已複製多語言名稱')).catch(()=>toast('複製失敗','warn'));
+}
+
+function exportCSV(){
+  const list=getItems().filter(x=>x.status==='pending'||x.itChecked);
+  if(!list.length){ toast('沒有可匯出的資料','warn'); return; }
+  const hd=['餐點名稱','分類','EN','JP','KR','FR','內用價格','Uber外送價格','上架時間','介紹','IT備註','狀態','上架確認時間'];
+  const rows=list.map(i=>[i.name,i.cat||'',i.en||'',i.jp||'',i.kr||'',i.fr||'',i.price?`NT$${i.price}`:'',i.priceUber?`NT$${i.priceUber}`:'',i.date?fmtDate(i.date):'',i.desc||'',i.note||'',i.itChecked?'已上架':'待上架',i.publishedAt?fmtDate(new Date(i.publishedAt).toISOString()):''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv='\uFEFF'+[hd.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const now=new Date();
+  a.download=`菜單上架_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast(`📊 已匯出 ${list.length} 筆`);
+}
+
+// ── MODAL ──
+function openModal(id){
+  editId=id||null;
+  const item=id?getItems().find(x=>x.id===id):null;
+  document.getElementById('modal-title').textContent=id?'編輯餐點':'新增餐點';
+  document.getElementById('f-name').value=item?.name||'';
+  document.getElementById('f-price').value=item?.price||'';
+  document.getElementById('f-date').value=item?.date||'';
+  document.getElementById('f-desc').value=item?.desc||'';
+  document.getElementById('f-note').value=item?.note||'';
+  document.getElementById('f-price-uber').value=item?.priceUber||'';
+  document.getElementById('f-en').value=item?.en||'';
+  document.getElementById('f-jp').value=item?.jp||'';
+  document.getElementById('f-kr').value=item?.kr||'';
+  document.getElementById('f-fr').value=item?.fr||'';
+  document.getElementById('f-img').value='';
+  syncModalCats();
+  document.getElementById('f-cat').value=item?.cat||'';
+  editImg=item?.imgData||null;
+  const prev=document.getElementById('img-preview');
+  const rem=document.getElementById('img-remove');
+  if(editImg){ prev.src=editImg; prev.style.display='block'; rem.style.display='block'; }
+  else{ prev.style.display='none'; rem.style.display='none'; }
+  updateTransHint();
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+
+function removeImg(){
+  editImg=null;
+  document.getElementById('img-preview').style.display='none';
+  document.getElementById('img-remove').style.display='none';
+}
+
+function saveItem(status){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){ toast('請輸入餐點名稱','warn'); return; }
+  const newItem={
+    id: editId||uid(),
+    name,
+    price: document.getElementById('f-price').value,
+    priceUber: document.getElementById('f-price-uber').value,
+    cat:   document.getElementById('f-cat').value,
+    date:  document.getElementById('f-date').value,
+    desc:  document.getElementById('f-desc').value.trim(),
+    note:  document.getElementById('f-note').value.trim(),
+    en:    document.getElementById('f-en').value.trim(),
+    jp:    document.getElementById('f-jp').value.trim(),
+    kr:    document.getElementById('f-kr').value.trim(),
+    fr:    document.getElementById('f-fr').value.trim(),
+    imgData: editImg,
+    status,
+    itChecked: false,
+    createdAt: Date.now()
+  };
+  if(editId){
+    const existing=getItems().find(x=>x.id===editId);
+    if(existing){ newItem.itChecked=existing.itChecked; newItem.publishedAt=existing.publishedAt; newItem.createdAt=existing.createdAt; if(existing.itChecked) newItem.status=existing.status; }
+  }
+  window.fbSaveItem&&window.fbSaveItem(newItem)
+    .then(()=>toast(status==='draft'?`📝 草稿已儲存「${name}」`:`📤 已送出「${name}」待上架`))
+    .catch(e=>{ console.error(e); toast('儲存失敗，請確認 Firebase 規則','warn'); });
+  closeModal();
+}
+
+// ── IMAGE ──
+function handleImg(e){
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    editImg=ev.target.result;
+    const p=document.getElementById('img-preview'); p.src=editImg; p.style.display='block';
+    document.getElementById('img-remove').style.display='block';
+  };
+  r.readAsDataURL(f);
+}
+
+// ── TRANSLATE (Google) ──
+function onNameChange(){ updateTransHint(); }
+function updateTransHint(){
+  const n=document.getElementById('f-name').value.trim();
+  document.getElementById('trans-hint').textContent=n?`將翻譯「${n}」`:'請先輸入中文名稱';
+}
+async function translateOne(text,target){
+  const url=`https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-TW&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+  const res=await fetch(url); const data=await res.json();
+  return data[0].map(x=>x[0]).join('');
+}
+async function autoTranslate(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){ toast('請先輸入中文名稱','warn'); return; }
+  const btn=document.getElementById('trans-btn');
+  btn.classList.add('loading'); btn.innerHTML='<span class="spinning">↻</span> 翻譯中…';
+  try{
+    const [en,jp,kr,fr]=await Promise.all([translateOne(name,'en'),translateOne(name,'ja'),translateOne(name,'ko'),translateOne(name,'fr')]);
+    if(en) document.getElementById('f-en').value=en;
+    if(jp) document.getElementById('f-jp').value=jp;
+    if(kr) document.getElementById('f-kr').value=kr;
+    if(fr) document.getElementById('f-fr').value=fr;
+    toast('✅ 翻譯完成，可手動調整');
+  }catch(e){ toast('翻譯失敗，請檢查網路連線','warn'); }
+  btn.classList.remove('loading');
+  btn.innerHTML='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"/><path d="M4 14l6-6 2-4"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="M22 22l-5-10-5 10"/><path d="M14 18h6"/></svg>自動翻譯';
+}
+
+// ── INIT ──
+renderStats();
+renderCards();
+</script>
+</body>
+</html>
